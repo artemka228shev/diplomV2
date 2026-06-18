@@ -52,9 +52,9 @@ DB_PASS=
 mysql -u root -p < database/schema.sql
 ```
 
-Если база уже существует, выполните миграцию:
+Если база уже существует, выполните дополнительную миграцию:
 ```bash
-mysql -u root -p < database/add_username.sql
+mysql -u root -p < database/add_description.sql
 ```
 
 5. Настройте веб-сервер:
@@ -89,10 +89,17 @@ composer dump-autoload
 - `/settings` - Настройки
 - `/admin` - Админ-панель
 
+## Документация
+
+- [Техническая документация](docs/architecture.md)
+- [API документация](docs/api.md)
+- [Презентация для защиты](docs/presentation.md)
+- [Чеклист проверки](docs/checklist.md)
+
 ## Структура проекта
 
 ```
-habitify/
+diplomV2/
 ├── app/
 │   ├── Controllers/     # Контроллеры
 │   ├── Models/          # Модели
@@ -106,6 +113,7 @@ habitify/
 │   └── web.php          # Маршруты
 ├── database/
 │   └── schema.sql       # Схема БД
+├── docs/
 ├── composer.json
 └── README.md
 ```

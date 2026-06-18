@@ -72,8 +72,8 @@
 ## Документация
 
 - [ ] README.md содержит инструкцию
-- [ ] DOCUMENTATION.md описывает архитектуру
-- [ ] PRESENTATION.md для защиты диплома
+- [ ] docs/architecture.md описывает архитектуру
+- [ ] docs/presentation.md для защиты диплома
 
 ## Код
 

@@ -175,3 +175,4 @@ php -S localhost:8000 -t public
 3. Интеграция с платежной системой (ЮKassa/Stripe)
 4. PWA поддержка
 5. Мобильное приложение (React Native)
+
