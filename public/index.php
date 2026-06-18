@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Front Controller - Habitify (для встроенного PHP-сервера)
  * Запуск: php -S localhost:8000 -t public

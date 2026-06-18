@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Core\Model;
@@ -29,6 +31,7 @@ class AuditLog extends Model
      */
     public function getByPeriod($startDate, $endDate = null, $limit = null, $page = 1, $filters = [])
     {
+        $this->validateTableName();
         $endDate = $endDate ?? date('Y-m-d');
         $offset = (int)(($page - 1) * $limit);
 
@@ -70,6 +73,7 @@ class AuditLog extends Model
      */
     public function getCountByPeriod($startDate, $endDate = null, $filters = [])
     {
+        $this->validateTableName();
         $endDate = $endDate ?? date('Y-m-d');
 
         $startDateTime = $startDate . ' 00:00:00';
@@ -105,6 +109,7 @@ class AuditLog extends Model
      */
     public function getByAdmin($adminId, $limit = 100)
     {
+        $this->validateTableName();
         $stmt = $this->db->prepare("
             SELECT al.*, u.email as admin_email, target.email as target_email
             FROM {$this->table} al
@@ -124,6 +129,7 @@ class AuditLog extends Model
      */
     public function getActionStats($startDate, $endDate = null)
     {
+        $this->validateTableName();
         $endDate = $endDate ?? date('Y-m-d');
 
         $startDateTime = $startDate . ' 00:00:00';

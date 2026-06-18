@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Core\Model;
@@ -10,6 +12,7 @@ class User extends Model
 
     public function findByEmailOrUsername($login)
     {
+        $this->validateTableName();
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = ? OR username = ? LIMIT 1");
         $stmt->execute([$login, $login]);
         return $stmt->fetchAll();
@@ -43,6 +46,7 @@ class User extends Model
      */
     public function getAllWithPagination($page = 1, $limit = 25, $search = '')
     {
+        $this->validateTableName();
         $offset = ($page - 1) * $limit;
         
         $whereSql = '';
@@ -70,6 +74,7 @@ class User extends Model
      */
     public function getCount($search = '')
     {
+        $this->validateTableName();
         $whereSql = '';
         $params = [];
         

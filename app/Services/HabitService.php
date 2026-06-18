@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Models\Habit;
 use App\Models\HabitLog;
 use App\Core\Auth;
+use App\Core\Database;
+use PDO;
 
 class HabitService
 {
@@ -38,36 +42,51 @@ class HabitService
             throw new \Exception('Unauthorized');
         }
 
-        if (!$this->auth->canCreateHabits()) {
-            $limit = $this->auth->getHabitLimit();
-            $current = $this->auth->getHabitCount();
-            return [
-                'success' => false,
-                'error' => 'Достигнут лимит привычек',
-                'limit' => $limit,
-                'current' => $current,
-                'upgrade_url' => '/pricing'
-            ];
-        }
-
         $errors = $this->validateHabitData($data);
         if (!empty($errors)) {
             return ['success' => false, 'errors' => $errors];
         }
 
-        $habitId = $this->habitModel->create([
-            'user_id' => $user['id'],
-            'title' => $data['title'],
-            'description' => $data['description'] ?? '',
-            'type' => $data['type'] ?? 'boolean',
-            'frequency' => $data['frequency'] ?? 'daily',
-            'target_value' => ($data['type'] ?? 'boolean') === 'quantitative' ? (int)($data['target_value'] ?? 1) : null,
-            'unit' => ($data['type'] ?? 'boolean') === 'quantitative' ? ($data['unit'] ?? '') : null,
-            'days_of_week' => !empty($data['days_of_week']) ? json_encode($data['days_of_week']) : null,
-            'is_active' => 1
-        ]);
+        // Транзакция для предотвращения race condition при проверке лимита
+        $db = Database::getConnection();
+        try {
+            $db->beginTransaction();
 
-        return ['success' => true, 'habit_id' => $habitId];
+            // Блокируем строку пользователя для атомарной проверки
+            $stmt = $db->prepare("SELECT COUNT(*) as cnt FROM habits WHERE user_id = ? FOR UPDATE");
+            $stmt->execute([$user['id']]);
+            $currentCount = (int)$stmt->fetchColumn();
+
+            $limit = $this->auth->getHabitLimit();
+            if ($currentCount >= $limit) {
+                $db->rollBack();
+                return [
+                    'success' => false,
+                    'error' => 'Достигнут лимит привычек',
+                    'limit' => $limit,
+                    'current' => $currentCount,
+                    'upgrade_url' => '/pricing'
+                ];
+            }
+
+            $habitId = $this->habitModel->create([
+                'user_id' => $user['id'],
+                'title' => $data['title'],
+                'description' => $data['description'] ?? '',
+                'type' => $data['type'] ?? 'boolean',
+                'frequency' => $data['frequency'] ?? 'daily',
+                'target_value' => ($data['type'] ?? 'boolean') === 'quantitative' ? (int)($data['target_value'] ?? 1) : null,
+                'unit' => ($data['type'] ?? 'boolean') === 'quantitative' ? ($data['unit'] ?? '') : null,
+                'days_of_week' => !empty($data['days_of_week']) ? json_encode($data['days_of_week']) : null,
+                'is_active' => 1
+            ]);
+
+            $db->commit();
+            return ['success' => true, 'habit_id' => $habitId];
+        } catch (\Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
     }
 
     public function update($id, array $data)
@@ -76,6 +95,13 @@ class HabitService
         $habit = $this->habitModel->findByIdAndUser($id, $user['id']);
         if (!$habit) {
             return ['success' => false, 'error' => 'Привычка не найдена'];
+        }
+
+        // Сливаем новые данные с существующими для валидации
+        $mergedData = array_merge($habit, $data);
+        $errors = $this->validateHabitData($mergedData);
+        if (!empty($errors)) {
+            return ['success' => false, 'errors' => $errors];
         }
 
         $this->habitModel->update($id, [

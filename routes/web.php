@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Core\Router;
 use App\Core\Container;
 use App\Controllers\AuthController;
@@ -53,7 +55,7 @@ $router->group(['middleware' => [AuthMiddleware::class, CsrfMiddleware::class]],
 });
 
 // Защищённые маршруты только для админа
-$router->group(['middleware' => [AuthMiddleware::class, AdminMiddleware::class]], function (Router $r) {
+$router->group(['middleware' => [AuthMiddleware::class, AdminMiddleware::class, CsrfMiddleware::class]], function (Router $r) {
     $r->get('/admin', [AdminController::class, 'dashboard']);
     $r->get('/admin/users', [AdminController::class, 'users']);
     $r->get('/admin/audit', [AdminController::class, 'audit']);

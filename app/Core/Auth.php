@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Core;
 
 use App\Models\User;
@@ -80,12 +82,26 @@ class Auth
         if (empty($_SESSION['user_id'])) {
             return null;
         }
+        
+        // Всегда загружаем свежие данные из БД, чтобы подписка/роль были актуальны
+        $user = $this->userModel->find($_SESSION['user_id']);
+        if (!$user) {
+            return null;
+        }
+        
+        // Обновляем сессию, если данные изменились
+        if (($user['role'] ?? '') !== ($_SESSION['user_role'] ?? '')
+            || ($user['subscription_type'] ?? '') !== ($_SESSION['subscription_type'] ?? '')) {
+            $_SESSION['user_role'] = $user['role'];
+            $_SESSION['subscription_type'] = $user['subscription_type'];
+        }
+        
         return [
-            'id' => $_SESSION['user_id'],
-            'email' => $_SESSION['user_email'],
-            'username' => $_SESSION['user_username'],
-            'role' => $_SESSION['user_role'],
-            'subscription_type' => $_SESSION['subscription_type']
+            'id' => (int)$user['id'],
+            'email' => $user['email'],
+            'username' => $user['username'],
+            'role' => $user['role'],
+            'subscription_type' => $user['subscription_type']
         ];
     }
 

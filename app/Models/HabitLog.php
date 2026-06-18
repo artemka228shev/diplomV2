@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Core\Model;
@@ -10,6 +12,7 @@ class HabitLog extends Model
 
     public function findByHabit($habitId, $startDate = null, $endDate = null)
     {
+        $this->validateTableName();
         $sql = "SELECT * FROM {$this->table} WHERE habit_id = ?";
         $params = [$habitId];
         
@@ -28,6 +31,7 @@ class HabitLog extends Model
 
     public function findByDate($habitId, $date)
     {
+        $this->validateTableName();
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE habit_id = ? AND date = ?");
         $stmt->execute([$habitId, $date]);
         $result = $stmt->fetch();
@@ -36,6 +40,7 @@ class HabitLog extends Model
 
     public function deleteByHabitAndDate($habitId, $date)
     {
+        $this->validateTableName();
         $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE habit_id = ? AND date = ?");
         return $stmt->execute([$habitId, $date]);
     }
@@ -54,30 +59,48 @@ class HabitLog extends Model
 
     public function getStreak($habitId)
     {
+        $this->validateTableName();
         $stmt = $this->db->prepare("
             SELECT date FROM {$this->table} 
             WHERE habit_id = ? 
             ORDER BY date DESC 
-            LIMIT 100
+            LIMIT 365
         ");
         $stmt->execute([$habitId]);
-        $logs = $stmt->fetchAll();
+        $logs = $stmt->fetchAll(\PDO::FETCH_COLUMN);
         
         if (empty($logs)) {
             return 0;
         }
         
         $streak = 0;
-        $currentDate = date('Y-m-d');
+        $today = new \DateTime('today');
+        $checkDate = clone $today;
         
-        foreach ($logs as $log) {
-            $logDate = strtotime($log['date']);
-            $expectedDate = strtotime("-{$streak} days", strtotime($currentDate));
+        foreach ($logs as $logDateStr) {
+            $logDate = new \DateTime($logDateStr);
+            $diff = (int)$today->diff($logDate)->days;
             
-            if (strtotime($log['date']) === $expectedDate || 
-                strtotime($log['date']) === strtotime("-" . ($streak - 1) . " days", strtotime($currentDate))) {
+            // Первый лог: проверяем, что он сегодня или вчера
+            if ($streak === 0) {
+                if ($diff === 0 || $diff === 1) {
+                    $streak = 1;
+                    $checkDate = clone $logDate;
+                } else {
+                    // Сегодня нет выполнения — streak = 0
+                    return 0;
+                }
+                continue;
+            }
+            
+            // Остальные логи: проверяем, что дата на 1 день раньше предыдущей
+            $expectedDate = clone $checkDate;
+            $expectedDate->modify('-1 day');
+            
+            if ($logDate->format('Y-m-d') === $expectedDate->format('Y-m-d')) {
                 $streak++;
-            } elseif (strtotime($log['date']) < $expectedDate) {
+                $checkDate = clone $logDate;
+            } else {
                 break;
             }
         }
