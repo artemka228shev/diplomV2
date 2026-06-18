@@ -1,0 +1,13 @@
+{
+    "name": "nlp-core-team/habitify",
+    "description": "Habit tracker web application",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "require": {
+        "php": ">=8.0"
+    }
+}
