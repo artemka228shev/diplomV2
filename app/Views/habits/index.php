@@ -11,19 +11,68 @@ $habits = $habits ?? [];
     </button>
 </div>
 
-<div class="row" id="habitsList">
-    <?php if (empty($habits)): ?>
-    <div class="col-12">
-        <div class="empty-state">
-            <div class="empty-icon">📝</div>
-            <h3>Привычки пока отсутствуют</h3>
-            <p>Добавьте первую привычку, чтобы начать отслеживание своих целей</p>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createHabitModal">
-                <i class="bi bi-plus-lg me-2"></i>Создать привычку
-            </button>
+<?php if (empty($habits)): ?>
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="stat-card">
+            <div class="stat-number">0</div>
+            <p>Активных привычек</p>
         </div>
     </div>
-    <?php else: ?>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card">
+            <div class="stat-number">—</div>
+            <p>Текущая серия</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card">
+            <div class="stat-number">—</div>
+            <p>Выполнено сегодня</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="mb-3" style="font-size: 3rem;">🎯</div>
+                <h4>Начните с одной привычки</h4>
+                <p class="text-muted mb-3" style="max-width: 480px; margin: 0 auto 16px;">
+                    Исследования показывают: чтобы сформировать привычку, нужно в среднем 66 дней. 
+                    Начните с малого — добавьте одну привычку и отмечайте выполнение каждый день.
+                </p>
+                <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createHabitModal">
+                    <i class="bi bi-plus-lg me-2"></i>Создать первую привычку
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5><i class="bi bi-lightbulb text-primary me-2"></i>Совет</h5>
+                <p class="text-muted mb-0">Начинайте с привычек, которые занимают не больше 5 минут. 
+                Например: выпить стакан воды, сделать 10 приседаний или прочитать одну страницу книги.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5><i class="bi bi-graph-up-arrow text-primary me-2"></i>Статистика</h5>
+                <p class="text-muted mb-0">После добавления привычек вы сможете отслеживать прогресс, 
+                смотреть графики выполнения и не прерывать серии на странице статистики.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<?php else: ?>
+<div class="row" id="habitsList">
         <?php foreach ($habits as $habit): ?>
         <div class="col-md-6 col-lg-4 mb-4" data-habit-id="<?= View::escape($habit['id']) ?>">
             <div class="card habit-card">

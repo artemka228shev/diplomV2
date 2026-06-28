@@ -45,10 +45,13 @@
 /* ===== База ===== */
 html,
 body {
-    min-height: 100%;
+    height: 100%;
+    margin: 0;
 }
 
 body {
+    display: flex;
+    flex-direction: column;
     background: var(--hf-bg);
     color: var(--hf-text);
     font-family: system-ui, -apple-system, "Segoe UI", "Inter", sans-serif;
@@ -66,6 +69,9 @@ a:hover {
     text-decoration: underline;
 }
 
+main {
+    flex: 1 0 auto;
+}
 main.container {
     padding-top: 12px;
     padding-bottom: 64px;
@@ -797,6 +803,7 @@ h6,
 
 /* ===== Футер ===== */
 footer {
+    flex-shrink: 0;
     border-top: 1px solid var(--hf-border);
     color: var(--hf-muted);
     padding: 48px 0 24px;
