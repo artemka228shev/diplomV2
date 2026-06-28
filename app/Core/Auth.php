@@ -23,8 +23,6 @@ class Auth
             return ['success' => false, 'error' => 'Неверный логин или пароль'];
         }
 
-        $user = $user[0];
-
         if (!password_verify($password, $user['password_hash'])) {
             return ['success' => false, 'error' => 'Неверный логин или пароль'];
         }
@@ -82,14 +80,12 @@ class Auth
         if (empty($_SESSION['user_id'])) {
             return null;
         }
-        
-        // Всегда загружаем свежие данные из БД, чтобы подписка/роль были актуальны
+
         $user = $this->userModel->find($_SESSION['user_id']);
         if (!$user) {
             return null;
         }
-        
-        // Обновляем сессию, если данные изменились
+
         if (($user['role'] ?? '') !== ($_SESSION['user_role'] ?? '')
             || ($user['subscription_type'] ?? '') !== ($_SESSION['subscription_type'] ?? '')) {
             $_SESSION['user_role'] = $user['role'];

@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 return [
-    'host' => getenv('DB_HOST') ?: 'localhost',
-    'port' => getenv('DB_PORT') ?: '3306',
-    'database' => getenv('DB_NAME') ?: 'habitify',
-    'username' => getenv('DB_USER') ?: 'root',
-    'password' => getenv('DB_PASS') ?: 'root',
+    'host' => 'localhost',
+    'port' => '3306',
+    'database' => 'habitify',
+    'username' => 'root',
+    'password' => 'root',
     'charset' => 'utf8mb4',
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

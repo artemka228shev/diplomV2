@@ -2,26 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * Front Controller - Habitify (для встроенного PHP-сервера)
- * Запуск: php -S localhost:8000 -t public
- */
-
-$envFile = __DIR__ . '/../.env';
-if (file_exists($envFile)) {
-    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        list($name, $value) = explode('=', $line, 2);
-        $name = trim($name);
-        $value = trim($value);
-        if (!array_key_exists($name, $_ENV)) {
-            $_ENV[$name] = $value;
-            putenv("$name=$value");
-        }
-    }
-}
-
 ini_set('session.save_path', __DIR__ . '/../tmp/sessions');
 if (!is_dir(__DIR__ . '/../tmp/sessions')) {
     mkdir(__DIR__ . '/../tmp/sessions', 0777, true);
@@ -55,6 +35,8 @@ use App\Core\Response;
 use App\Core\Router;
 
 $container = Container::getInstance();
+$container->instance(Container::class, $container);
+
 $request = new Request();
 $response = new Response();
 
@@ -69,10 +51,6 @@ try {
     }
 } catch (\Throwable $e) {
     error_log('[Habitify] ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-    if (getenv('APP_DEBUG') === 'true') {
-        echo '<pre>' . $e->getMessage() . "\n" . $e->getTraceAsString() . '</pre>';
-    } else {
-        http_response_code(500);
-        echo 'Внутренняя ошибка сервера';
-    }
+    http_response_code(500);
+    echo 'Внутренняя ошибка сервера';
 }

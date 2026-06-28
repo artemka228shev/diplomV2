@@ -22,7 +22,6 @@ $container = Container::getInstance();
 $router = new Router($container);
 $router->setBasePath('');
 
-// Публичные маршруты
 $router->get('/', [HomeController::class, 'index']);
 
 $router->group(['middleware' => [GuestMiddleware::class]], function (Router $r) {
@@ -36,9 +35,7 @@ $router->get('/logout', [AuthController::class, 'logout']);
 $router->get('/pricing', [PricingController::class, 'index']);
 $router->post('/api/subscribe', [PaymentController::class, 'subscribe'], [CsrfMiddleware::class]);
 
-// Защищённые маршруты (требуется аутентификация)
 $router->group(['middleware' => [AuthMiddleware::class, CsrfMiddleware::class]], function (Router $r) {
-    // Habits
     $r->get('/habits', [HabitController::class, 'index']);
     $r->post('/habits', [HabitController::class, 'create']);
     $r->get('/habits/{id}', [HabitController::class, 'show']);
@@ -46,15 +43,12 @@ $router->group(['middleware' => [AuthMiddleware::class, CsrfMiddleware::class]],
     $r->delete('/habits/{id}', [HabitController::class, 'delete']);
     $r->post('/habits/{id}/log', [HabitController::class, 'log']);
 
-    // Stats
     $r->get('/stats', [StatisticController::class, 'index']);
 
-    // Settings
     $r->get('/settings', [SettingsController::class, 'index']);
     $r->post('/api/settings', [SettingsController::class, 'update']);
 });
 
-// Защищённые маршруты только для админа
 $router->group(['middleware' => [AuthMiddleware::class, AdminMiddleware::class, CsrfMiddleware::class]], function (Router $r) {
     $r->get('/admin', [AdminController::class, 'dashboard']);
     $r->get('/admin/users', [AdminController::class, 'users']);

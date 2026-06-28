@@ -15,7 +15,7 @@ class Database
     {
         if (self::$instance === null) {
             $config = require __DIR__ . '/../config/database.php';
-            
+
             try {
                 $dsn = sprintf(
                     'mysql:host=%s;port=%s;dbname=%s;charset=%s',
@@ -24,7 +24,7 @@ class Database
                     $config['database'],
                     $config['charset']
                 );
-                
+
                 self::$instance = new PDO(
                     $dsn,
                     $config['username'],
@@ -36,7 +36,7 @@ class Database
                 throw new \Exception('Database connection failed');
             }
         }
-        
+
         return self::$instance;
     }
 }

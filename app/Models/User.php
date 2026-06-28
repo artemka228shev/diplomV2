@@ -15,7 +15,8 @@ class User extends Model
         $this->validateTableName();
         $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = ? OR username = ? LIMIT 1");
         $stmt->execute([$login, $login]);
-        return $stmt->fetchAll();
+        $result = $stmt->fetch();
+        return $result ?: null;
     }
 
     public function getHabitCount($userId)

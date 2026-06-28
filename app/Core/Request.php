@@ -32,7 +32,6 @@ class Request
         $this->query = [];
         parse_str(parse_url($this->uri, PHP_URL_QUERY) ?? '', $this->query);
 
-        // Для PUT/DELETE/PATCH — парсим php://input
         if (in_array($this->method, ['PUT', 'PATCH', 'DELETE']) && empty($this->post)) {
             $contentType = $this->getContentType();
             if (strpos($contentType, 'application/json') !== false) {
