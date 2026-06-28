@@ -5,7 +5,7 @@
 ## Установка
 
 ### 1. Требования
-- OpenServer / XAMPP / любой веб-сервер с PHP 8.0+ и MySQL
+- OpenServer / XAMPP / любой веб-сервер с PHP 7.3+ и MySQL
 - phpMyAdmin (для импорта БД)
 
 ### 2. Установка
@@ -26,5 +26,5 @@
 | User  | user@habitify.local  | user123   |
 
 ## Технологии
-- PHP 8.0+, MySQL, Bootstrap 5.3, Chart.js
+- PHP 7.3+, MySQL, Bootstrap 5.3, Chart.js
 - MVC, кастомный роутер, DI-контейнер
