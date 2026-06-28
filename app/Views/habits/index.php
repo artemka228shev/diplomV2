@@ -12,67 +12,27 @@ $habits = $habits ?? [];
 </div>
 
 <?php if (empty($habits)): ?>
-<div class="row mb-4">
-    <div class="col-md-4 mb-3">
-        <div class="stat-card">
-            <div class="stat-number">0</div>
-            <p>Активных привычек</p>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="stat-card">
-            <div class="stat-number">—</div>
-            <p>Текущая серия</p>
-        </div>
-    </div>
-    <div class="col-md-4 mb-3">
-        <div class="stat-card">
-            <div class="stat-number">—</div>
-            <p>Выполнено сегодня</p>
-        </div>
+<div class="col-12">
+    <div class="empty-state" id="emptyState">
+        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 20px;">
+            <rect width="120" height="120" rx="20" fill="#1f2327"/>
+            <circle cx="60" cy="48" r="22" stroke="#8bb590" stroke-width="2.5" fill="none"/>
+            <path d="M52 48l6 6 10-10" stroke="#8bb590" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="30" y="76" width="60" height="4" rx="2" fill="#272c31"/>
+            <rect x="30" y="86" width="45" height="4" rx="2" fill="#272c31"/>
+            <rect x="30" y="96" width="52" height="4" rx="2" fill="#272c31"/>
+        </svg>
+        <h3>Привычки пока отсутствуют</h3>
+        <p>Добавьте первую привычку, чтобы начать отслеживание своих целей</p>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createHabitModal">
+            <i class="bi bi-plus-lg me-2"></i>Создать привычку
+        </button>
     </div>
 </div>
+<?php endif; ?>
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <div class="mb-3" style="font-size: 3rem;">🎯</div>
-                <h4>Начните с одной привычки</h4>
-                <p class="text-muted mb-3" style="max-width: 480px; margin: 0 auto 16px;">
-                    Исследования показывают: чтобы сформировать привычку, нужно в среднем 66 дней. 
-                    Начните с малого — добавьте одну привычку и отмечайте выполнение каждый день.
-                </p>
-                <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createHabitModal">
-                    <i class="bi bi-plus-lg me-2"></i>Создать первую привычку
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5><i class="bi bi-lightbulb text-primary me-2"></i>Совет</h5>
-                <p class="text-muted mb-0">Начинайте с привычек, которые занимают не больше 5 минут. 
-                Например: выпить стакан воды, сделать 10 приседаний или прочитать одну страницу книги.</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5><i class="bi bi-graph-up-arrow text-primary me-2"></i>Статистика</h5>
-                <p class="text-muted mb-0">После добавления привычек вы сможете отслеживать прогресс, 
-                смотреть графики выполнения и не прерывать серии на странице статистики.</p>
-            </div>
-        </div>
-    </div>
-</div>
-<?php else: ?>
-<div class="row" id="habitsList">
+<div class="row" id="habitsList" style="<?= empty($habits) ? 'display: none;' : '' ?>">
+    <?php if (!empty($habits)): ?>
         <?php foreach ($habits as $habit): ?>
         <div class="col-md-6 col-lg-4 mb-4" data-habit-id="<?= View::escape($habit['id']) ?>">
             <div class="card habit-card">
@@ -275,7 +235,84 @@ document.getElementById('createHabitForm').addEventListener('submit', async func
         const response = await axios.post('/habits', formData);
         if (response.data.success) {
             bootstrap.Modal.getInstance(document.getElementById('createHabitModal')).hide();
-            location.reload();
+            this.reset();
+            // Добавляем новую привычку динамически
+            const habitId = response.data.habit_id;
+            const title = formData.get('title');
+            const description = formData.get('description') || '';
+            const type = formData.get('type');
+            const frequency = formData.get('frequency');
+            const targetValue = formData.get('target_value') || 0;
+            const unit = formData.get('unit') || '';
+
+            // Убираем пустое состояние, если оно есть
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                const emptyCol = emptyState.closest('.col-12');
+                if (emptyCol) emptyCol.remove();
+                // Показываем контейнер для привычек
+                const habitsList = document.getElementById('habitsList');
+                if (habitsList) habitsList.style.display = 'flex';
+            }
+
+            const freqLabels = {'daily': 'Ежедневно', 'weekly': 'Еженедельно', 'custom': 'По расписанию'};
+            const freqLabel = freqLabels[frequency] || frequency;
+
+            let extraHtml = '';
+            if (type === 'quantitative') {
+                extraHtml = `<p class="mb-3">Цель: <strong class="text-primary">${targetValue} ${unit}</strong></p>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'col-md-6 col-lg-4 mb-4';
+            card.setAttribute('data-habit-id', habitId);
+            card.innerHTML = `
+                <div class="card habit-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="card-title mb-0">${title}</h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-link text-muted-custom" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <button class="dropdown-item btn-edit-habit" data-id="${habitId}" data-title="${title}" data-description="${description}" data-type="${type}" data-target-value="${targetValue}" data-unit="${unit}" data-frequency="${frequency}">
+                                            <i class="bi bi-pencil me-2"></i> Редактировать
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button class="dropdown-item text-danger btn-delete-habit" data-id="${habitId}">
+                                            <i class="bi bi-trash me-2"></i> Удалить
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="text-muted-custom mb-3">${freqLabel}</p>
+                        ${description ? `<p class="text-muted-custom mb-3 small">${description.length > 80 ? description.substring(0, 80) + '...' : description}</p>` : ''}
+                        ${extraHtml}
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-complete-habit btn-sm" data-id="${habitId}">
+                                    <i class="bi bi-check-lg me-1"></i> Выполнить
+                                </button>
+                                <a href="/habits/${habitId}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-eye me-1"></i> Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const habitsList = document.getElementById('habitsList');
+            if (habitsList) {
+                habitsList.appendChild(card);
+                // Навешиваем обработчики на новую карточку
+                attachHabitHandlers(card);
+            }
         }
     } catch (error) {
         const data = error.response?.data;
@@ -286,49 +323,67 @@ document.getElementById('createHabitForm').addEventListener('submit', async func
     }
 });
 
-document.querySelectorAll('.btn-complete-habit').forEach(button => {
-    button.addEventListener('click', async function() {
-        const habitId = this.dataset.id;
-        const formData = new FormData();
-        formData.append('completed', 'true');
-        try {
-            await axios.post(`/habits/${habitId}/log`, formData);
-            location.reload();
-        } catch (error) {
-            alert('Ошибка: ' + (error.response?.data?.error || error.message));
-        }
+function attachHabitHandlers(container) {
+    container.querySelectorAll('.btn-complete-habit').forEach(button => {
+        button.addEventListener('click', async function() {
+            const habitId = this.dataset.id;
+            const formData = new FormData();
+            formData.append('completed', 'true');
+            try {
+                await axios.post(`/habits/${habitId}/log`, formData);
+                location.reload();
+            } catch (error) {
+                alert('Ошибка: ' + (error.response?.data?.error || error.message));
+            }
+        });
     });
-});
 
-document.querySelectorAll('.btn-undo-habit').forEach(button => {
-    button.addEventListener('click', async function() {
-        const habitId = this.dataset.id;
-        if (!confirm('Отменить выполнение?')) return;
-        const formData = new FormData();
-        formData.append('_method', 'DELETE');
-        try {
-            await axios.post(`/habits/${habitId}/log`, formData);
-            location.reload();
-        } catch (error) {
-            alert('Ошибка: ' + (error.response?.data?.error || error.message));
-        }
+    container.querySelectorAll('.btn-undo-habit').forEach(button => {
+        button.addEventListener('click', async function() {
+            const habitId = this.dataset.id;
+            if (!confirm('Отменить выполнение?')) return;
+            const formData = new FormData();
+            formData.append('_method', 'DELETE');
+            try {
+                await axios.post(`/habits/${habitId}/log`, formData);
+                location.reload();
+            } catch (error) {
+                alert('Ошибка: ' + (error.response?.data?.error || error.message));
+            }
+        });
     });
-});
 
-document.querySelectorAll('.btn-edit-habit').forEach(button => {
-    button.addEventListener('click', function() {
-        document.getElementById('editHabitId').value = this.dataset.id;
-        document.getElementById('editHabitTitle').value = this.dataset.title;
-        document.getElementById('editHabitDescription').value = this.dataset.description;
-        document.getElementById('editHabitType').value = this.dataset.type;
-        document.getElementById('editHabitTarget').value = this.dataset.targetValue;
-        document.getElementById('editHabitUnit').value = this.dataset.unit;
-        document.getElementById('editHabitFrequency').value = this.dataset.frequency;
-        document.getElementById('editTargetValueContainer').style.display =
-            this.dataset.type === 'quantitative' ? 'block' : 'none';
-        new bootstrap.Modal(document.getElementById('editHabitModal')).show();
+    container.querySelectorAll('.btn-edit-habit').forEach(button => {
+        button.addEventListener('click', function() {
+            document.getElementById('editHabitId').value = this.dataset.id;
+            document.getElementById('editHabitTitle').value = this.dataset.title;
+            document.getElementById('editHabitDescription').value = this.dataset.description;
+            document.getElementById('editHabitType').value = this.dataset.type;
+            document.getElementById('editHabitTarget').value = this.dataset.targetValue;
+            document.getElementById('editHabitUnit').value = this.dataset.unit;
+            document.getElementById('editHabitFrequency').value = this.dataset.frequency;
+            document.getElementById('editTargetValueContainer').style.display =
+                this.dataset.type === 'quantitative' ? 'block' : 'none';
+            new bootstrap.Modal(document.getElementById('editHabitModal')).show();
+        });
     });
-});
+
+    container.querySelectorAll('.btn-delete-habit').forEach(button => {
+        button.addEventListener('click', async function() {
+            if (!confirm('Удалить эту привычку?')) return;
+            const habitId = this.dataset.id;
+            try {
+                await axios.delete(`/habits/${habitId}`);
+                document.querySelector(`[data-habit-id="${habitId}"]`).remove();
+            } catch (error) {
+                alert('Ошибка при удалении');
+            }
+        });
+    });
+}
+
+// Навешиваем обработчики на существующие карточки
+document.querySelectorAll('#habitsList > div').forEach(attachHabitHandlers);
 
 document.getElementById('editHabitForm').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -343,18 +398,5 @@ document.getElementById('editHabitForm').addEventListener('submit', async functi
     } catch (error) {
         alert('Ошибка: ' + (error.response?.data?.error || error.message));
     }
-});
-
-document.querySelectorAll('.btn-delete-habit').forEach(button => {
-    button.addEventListener('click', async function() {
-        if (!confirm('Удалить эту привычку?')) return;
-        const habitId = this.dataset.id;
-        try {
-            await axios.delete(`/habits/${habitId}`);
-            document.querySelector(`[data-habit-id="${habitId}"]`).remove();
-        } catch (error) {
-            alert('Ошибка при удалении');
-        }
-    });
 });
 </script>
